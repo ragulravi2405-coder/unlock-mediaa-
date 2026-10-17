@@ -214,7 +214,7 @@ app.get('/api/contact/messages', requireAdmin, (req, res) => {
 // 4. Public Media APIs
 app.get('/api/media', (req, res) => {
   let items = getMediaCatalog();
-  const { category, type, search } = req.query;
+  const { category, type, search, sort } = req.query;
 
   if (category && category !== 'All') {
     items = items.filter(m => m.category === category);
@@ -225,6 +225,15 @@ app.get('/api/media', (req, res) => {
   if (search) {
     const s = String(search).toLowerCase();
     items = items.filter(m => m.title.toLowerCase().includes(s) || (m.tags && m.tags.some(t => t.toLowerCase().includes(s))));
+  }
+
+  // Sort: price-high default (10 new ₹199 photos first)
+  if (sort === 'price-low') {
+    items.sort((a, b) => (a.price || 0) - (b.price || 0));
+  } else if (sort === 'popular') {
+    items.sort((a, b) => (b.unlockCount || 0) - (a.unlockCount || 0));
+  } else {
+    items.sort((a, b) => (b.price || 0) - (a.price || 0));
   }
 
   res.json({

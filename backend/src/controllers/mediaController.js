@@ -34,13 +34,13 @@ exports.getPublicMediaList = async (req, res) => {
       query.$text = { $search: search.trim() };
     }
 
-    let sortOptions = { createdAt: -1 };
+    let sortOptions = { price: -1, createdAt: -1 };
     if (sort === 'popular') {
       sortOptions = { unlockCount: -1, viewsCount: -1 };
     } else if (sort === 'price-low') {
-      sortOptions = { price: 1 };
+      sortOptions = { price: 1, createdAt: -1 };
     } else if (sort === 'price-high') {
-      sortOptions = { price: -1 };
+      sortOptions = { price: -1, createdAt: -1 };
     }
 
     const pageNum = Math.max(1, parseInt(page, 10));

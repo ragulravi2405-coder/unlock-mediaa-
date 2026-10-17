@@ -25,7 +25,8 @@ export default function HomePage() {
         category: selectedCategory !== 'All' ? selectedCategory : undefined,
         type: selectedType !== 'all' ? selectedType : undefined,
         search: searchQuery || undefined,
-        limit: 12
+        sort: 'price-high',
+        limit: 50
       });
 
       if (res.success) {

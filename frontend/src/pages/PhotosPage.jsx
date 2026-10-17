@@ -8,7 +8,7 @@ export default function PhotosPage() {
   const [photos, setPhotos] = useState([]);
   const [categories, setCategories] = useState(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('price-high');
   const [loading, setLoading] = useState(true);
   const [selectedMediaForCheckout, setSelectedMediaForCheckout] = useState(null);
 
@@ -19,7 +19,7 @@ export default function PhotosPage() {
         type: 'photo',
         category: selectedCategory !== 'All' ? selectedCategory : undefined,
         sort: sortBy,
-        limit: 24
+        limit: 50
       });
       if (res.success) {
         setPhotos(res.data || []);
@@ -62,6 +62,8 @@ export default function PhotosPage() {
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-white border border-slate-200 text-xs font-bold text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
+            <option value="price-high">Price: High to Low (₹199 Top)</option>
+            <option value="price-low">Price: Low to High</option>
             <option value="newest">Recently Added</option>
             <option value="popular">Most Unlocked</option>
           </select>

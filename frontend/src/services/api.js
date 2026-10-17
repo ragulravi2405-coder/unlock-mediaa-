@@ -79,6 +79,20 @@ export const api = {
           const s = params.search.toLowerCase();
           items = items.filter(m => m.title.toLowerCase().includes(s) || (m.tags && m.tags.some(t => t.toLowerCase().includes(s))));
         }
+
+        if (params.sort === 'price-low') {
+          items.sort((a, b) => (a.price || 0) - (b.price || 0));
+        } else if (params.sort === 'popular') {
+          items.sort((a, b) => (b.unlockCount || 0) - (a.unlockCount || 0));
+        } else {
+          // Default & price-high: 10 new ₹199 photos first
+          items.sort((a, b) => (b.price || 0) - (a.price || 0));
+        }
+
+        if (params.limit && typeof params.limit === 'number') {
+          items = items.slice(0, params.limit);
+        }
+
         return {
           success: true,
           count: items.length,
