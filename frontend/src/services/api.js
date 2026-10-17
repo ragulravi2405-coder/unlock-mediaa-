@@ -52,15 +52,65 @@ async function apiRequest(endpoint, options = {}) {
 
 export const api = {
   // Public Media
-  getMediaList: (params = {}) => {
-    const query = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') query.append(k, v);
-    });
-    return apiRequest(`/media?${query.toString()}`);
+  getMediaList: async (params = {}) => {
+    try {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') query.append(k, v);
+      });
+      const res = await apiRequest(`/media?${query.toString()}`);
+      if (res && res.data && res.data.length > 0) return res;
+    } catch (err) {
+      console.warn('[API Warning] Live API unreachable, using verified local catalog:', err.message);
+    }
+
+    // High-reliability fallback to bundled media catalog
+    try {
+      const fallbackRes = await fetch('/data/media.json');
+      if (fallbackRes.ok) {
+        let items = await fallbackRes.json();
+        if (params.category && params.category !== 'All') {
+          items = items.filter(m => m.category === params.category);
+        }
+        if (params.type && params.type !== 'all') {
+          items = items.filter(m => m.mediaType === params.type);
+        }
+        if (params.search) {
+          const s = params.search.toLowerCase();
+          items = items.filter(m => m.title.toLowerCase().includes(s) || (m.tags && m.tags.some(t => t.toLowerCase().includes(s))));
+        }
+        return {
+          success: true,
+          count: items.length,
+          data: items,
+          categories: ['All', 'Photoshoot', 'Cinematic']
+        };
+      }
+    } catch (e) {
+      console.warn('[Static Catalog Fallback Error]', e.message);
+    }
+    return { success: false, data: [] };
   },
 
-  getMediaById: (idOrSlug) => apiRequest(`/media/${idOrSlug}`),
+  getMediaById: async (idOrSlug) => {
+    try {
+      const res = await apiRequest(`/media/${idOrSlug}`);
+      if (res && res.data) return res;
+    } catch (err) {
+      console.warn('[API Warning] Fetch media by ID failed, falling back to local catalog:', err.message);
+    }
+
+    try {
+      const fallbackRes = await fetch('/data/media.json');
+      if (fallbackRes.ok) {
+        const items = await fallbackRes.json();
+        const found = items.find(m => m._id === idOrSlug || m.slug === idOrSlug);
+        if (found) return { success: true, data: found };
+      }
+    } catch (e) {}
+
+    throw new Error('Media item not found');
+  },
 
   // User Authentication (Name + 8-Digit Password)
   userAuthEntry: ({ name, password }) => apiRequest('/user-auth/entry', {

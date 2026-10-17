@@ -107,6 +107,22 @@ async function syncImagesFolder() {
       // Check if already synced in DB by originalFileName
       const existing = await Media.findOne({ originalFileName: fileName });
       if (existing) {
+        // Ensure preview file exists on disk (crucial for cloud redeployments where uploads are gitignored)
+        if (existing.previewUrl) {
+          const previewFile = path.basename(existing.previewUrl);
+          const previewDiskPath = path.join(PREVIEWS_DIR, previewFile);
+          if (!fs.existsSync(previewDiskPath)) {
+            fs.copyFileSync(sourceFilePath, previewDiskPath);
+            console.log(`[Image Sync] Restored missing preview file on disk: ${previewFile}`);
+          }
+        }
+        if (existing.originalFileKey) {
+          const origDiskPath = path.join(ORIGINALS_DIR, existing.originalFileKey);
+          if (!fs.existsSync(origDiskPath)) {
+            fs.copyFileSync(sourceFilePath, origDiskPath);
+            console.log(`[Image Sync] Restored missing original file on disk: ${existing.originalFileKey}`);
+          }
+        }
         skippedCount++;
         continue;
       }
