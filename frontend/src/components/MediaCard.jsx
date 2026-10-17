@@ -14,31 +14,47 @@ export default function MediaCard({ media, onUnlockClick }) {
         to={`/media/${media.slug || media._id}`}
         className="relative aspect-[16/10] overflow-hidden bg-slate-950 block"
       >
-        <img
-          src={media.previewUrl}
-          alt={media.title}
-          loading="lazy"
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            !unlocked
-              ? 'blur-[16px] scale-115 brightness-90 contrast-110 select-none pointer-events-none'
-              : 'group-hover:scale-105'
-          }`}
-        />
+        {(() => {
+          const isLightBlur = media.price === 199 || (media.originalFileName && media.originalFileName.includes('WhatsApp')) || (media.tags && media.tags.includes('199'));
 
-        {/* Censor Blur Veil Overlay (blurred out details, outline lightly hinted) */}
-        {!unlocked && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[3px] flex flex-col items-center justify-center p-3 text-center z-10 transition-colors">
-            <div className="w-10 h-10 rounded-2xl bg-slate-900/90 border border-white/25 text-amber-400 flex items-center justify-center shadow-xl mb-1.5 ring-2 ring-black/30">
-              <Lock className="w-4 h-4 text-amber-400" />
-            </div>
-            <span className="text-[11px] font-bold text-white tracking-wide drop-shadow-md">
-              {media.price === 1 ? '🔥 Special Deal: ₹1' : '🔒 Blurred & Censored'}
-            </span>
-            <span className="text-[10px] text-amber-300 font-bold mt-0.5 drop-shadow-sm bg-black/60 px-2.5 py-0.5 rounded-full border border-amber-400/20">
-              Pay ₹{media.price || 99} to Unblur & View
-            </span>
-          </div>
-        )}
+          return (
+            <>
+              <img
+                src={media.previewUrl}
+                alt={media.title}
+                loading="lazy"
+                className={`w-full h-full object-cover transition-all duration-500 ${
+                  !unlocked
+                    ? (isLightBlur
+                        ? 'blur-[3.5px] scale-102 brightness-95 contrast-105 select-none pointer-events-none'
+                        : 'blur-[16px] scale-115 brightness-90 contrast-110 select-none pointer-events-none')
+                    : 'group-hover:scale-105'
+                }`}
+              />
+
+              {/* Censor Blur Veil Overlay */}
+              {!unlocked && (
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-3 text-center z-10 transition-colors ${
+                  isLightBlur
+                    ? 'bg-slate-950/20 backdrop-blur-[1px]'
+                    : 'bg-slate-950/40 backdrop-blur-[3px]'
+                }`}>
+                  <div className={`rounded-2xl bg-slate-900/90 border border-white/25 text-amber-400 flex items-center justify-center shadow-xl mb-1.5 ring-2 ring-black/30 ${
+                    isLightBlur ? 'w-8 h-8' : 'w-10 h-10'
+                  }`}>
+                    <Lock className={isLightBlur ? 'w-3.5 h-3.5 text-amber-400' : 'w-4 h-4 text-amber-400'} />
+                  </div>
+                  <span className="text-[11px] font-bold text-white tracking-wide drop-shadow-md">
+                    {isLightBlur ? '✨ Seductive Lite-Blur Preview' : '🔒 Blurred & Censored'}
+                  </span>
+                  <span className="text-[10px] text-amber-300 font-bold mt-0.5 drop-shadow-sm bg-black/60 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                    Pay ₹{media.price || 99} to Unblur & View
+                  </span>
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Media Type Badge */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 z-20">

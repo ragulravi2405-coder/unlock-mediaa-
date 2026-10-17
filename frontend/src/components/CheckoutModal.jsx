@@ -375,9 +375,13 @@ export default function CheckoutModal({ media, isOpen, onClose, onUnlocked }) {
               <img
                 src={media.previewUrl}
                 alt={media.title}
-                className="w-full h-full object-cover blur-[14px] scale-115 brightness-90 select-none pointer-events-none"
+                className={`w-full h-full object-cover select-none pointer-events-none ${
+                  (media.price === 199 || (media.originalFileName && media.originalFileName.includes('WhatsApp')) || (media.tags && media.tags.includes('199')))
+                    ? 'blur-[3px] scale-102 brightness-95'
+                    : 'blur-[14px] scale-115 brightness-90'
+                }`}
               />
-              <div className="absolute inset-0 bg-slate-950/40 flex items-center justify-center">
+              <div className="absolute inset-0 bg-slate-950/25 flex items-center justify-center">
                 <Lock className="w-5 h-5 text-amber-400" />
               </div>
             </div>

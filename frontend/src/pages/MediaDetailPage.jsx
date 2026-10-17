@@ -168,45 +168,58 @@ export default function MediaDetailPage() {
             />
           )
         ) : (
-          /* Fully Blurred & Censored Locked Preview */
-          <div className="relative rounded-3xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl aspect-[16/10] sm:aspect-[21/9] flex items-center justify-center">
-            <img
-              src={media.previewUrl}
-              alt={media.title}
-              className="w-full h-full object-cover blur-[20px] scale-115 brightness-90 contrast-115 select-none pointer-events-none filter transition-all duration-700"
-            />
+          /* Blurred Locked Preview */
+          (() => {
+            const isLightBlur = media.price === 199 || (media.originalFileName && media.originalFileName.includes('WhatsApp')) || (media.tags && media.tags.includes('199'));
 
-            {/* Censor Blur Overlay (details heavily blurred, outline hinted) */}
-            <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[4px] flex flex-col items-center justify-center p-6 text-center z-10">
-              <div className="w-14 h-14 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-2xl mb-3 ring-4 ring-amber-500/10">
-                <Lock className="w-7 h-7 text-amber-400" />
+            return (
+              <div className="relative rounded-3xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl aspect-[16/10] sm:aspect-[21/9] flex items-center justify-center">
+                <img
+                  src={media.previewUrl}
+                  alt={media.title}
+                  className={`w-full h-full object-cover select-none pointer-events-none filter transition-all duration-700 ${
+                    isLightBlur
+                      ? 'blur-[4.5px] scale-102 brightness-95 contrast-105'
+                      : 'blur-[20px] scale-115 brightness-90 contrast-115'
+                  }`}
+                />
+
+                {/* Censor Blur Overlay */}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 transition-colors ${
+                  isLightBlur
+                    ? 'bg-slate-950/25 backdrop-blur-[1.5px]'
+                    : 'bg-slate-950/45 backdrop-blur-[4px]'
+                }`}>
+                  <div className="w-14 h-14 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-2xl mb-3 ring-4 ring-amber-500/10">
+                    <Lock className="w-7 h-7 text-amber-400" />
+                  </div>
+
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 mb-2 backdrop-blur-md">
+                    {isLightBlur ? '✨ Seductive Lite-Blur Preview' : '🔒 Blurred & Censored Preview'}
+                  </span>
+
+                  <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-white max-w-lg shadow-sm">
+                    Unlock High-Definition Master
+                  </h2>
+
+                  <p className="text-xs sm:text-sm text-slate-200 max-w-md mt-2 mb-6 leading-relaxed">
+                    {isLightBlur
+                      ? `Teaser preview is lightly blurred. Pay ₹${media.price || 199} to immediately unblur, unlock, and download the full crystal uncompressed master.`
+                      : `Preview is softly blurred. Pay ₹${media.price || 99} to immediately unblur, unlock, and watch or download the full master.`
+                    }
+                  </p>
+
+                  <button
+                    onClick={() => setCheckoutOpen(true)}
+                    className="px-7 py-3.5 rounded-2xl font-display font-extrabold text-sm text-white transition-all duration-200 flex items-center gap-2 active:scale-95 shadow-xl bg-brand-600 hover:bg-brand-500 shadow-brand-500/30"
+                  >
+                    <Zap className="w-4 h-4 fill-white" />
+                    <span>Pay ₹{media.price || 99} to Unblur & Unlock Now</span>
+                  </button>
+                </div>
               </div>
-
-              <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 mb-2 backdrop-blur-md">
-                {media.price === 1 ? '🔥 Special ₹1 Trial Deal' : '🔒 Blurred & Censored Preview'}
-              </span>
-
-              <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-white max-w-lg shadow-sm">
-                Unlock High-Definition Master
-              </h2>
-
-              <p className="text-xs sm:text-sm text-slate-200 max-w-md mt-2 mb-6 leading-relaxed">
-                Preview is softly blurred. Pay {media.price === 1 ? 'just ₹1' : `₹${media.price || 99}`} to immediately unblur, unlock, and watch or download the full master.
-              </p>
-
-              <button
-                onClick={() => setCheckoutOpen(true)}
-                className={`px-7 py-3.5 rounded-2xl font-display font-extrabold text-sm text-white transition-all duration-200 flex items-center gap-2 active:scale-95 shadow-xl ${
-                  media.price === 1
-                    ? 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 shadow-rose-500/30'
-                    : 'bg-brand-600 hover:bg-brand-500 shadow-brand-500/30'
-                }`}
-              >
-                <Zap className="w-4 h-4 fill-white" />
-                <span>Pay ₹{media.price || 99} to Unblur & Unlock Now</span>
-              </button>
-            </div>
-          </div>
+            );
+          })()
         )}
       </div>
 
