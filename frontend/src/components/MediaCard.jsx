@@ -26,7 +26,7 @@ export default function MediaCard({ media, onUnlockClick }) {
                 className={`w-full h-full object-cover transition-all duration-500 ${
                   !unlocked
                     ? (isLightBlur
-                        ? 'blur-[3.5px] scale-102 brightness-95 contrast-105 select-none pointer-events-none'
+                        ? 'blur-[8px] scale-106 brightness-92 contrast-105 select-none pointer-events-none'
                         : 'blur-[16px] scale-115 brightness-90 contrast-110 select-none pointer-events-none')
                     : 'group-hover:scale-105'
                 }`}
@@ -36,7 +36,7 @@ export default function MediaCard({ media, onUnlockClick }) {
               {!unlocked && (
                 <div className={`absolute inset-0 flex flex-col items-center justify-center p-3 text-center z-10 transition-colors ${
                   isLightBlur
-                    ? 'bg-slate-950/20 backdrop-blur-[1px]'
+                    ? 'bg-slate-950/30 backdrop-blur-[2px]'
                     : 'bg-slate-950/40 backdrop-blur-[3px]'
                 }`}>
                   <div className={`rounded-2xl bg-slate-900/90 border border-white/25 text-amber-400 flex items-center justify-center shadow-xl mb-1.5 ring-2 ring-black/30 ${

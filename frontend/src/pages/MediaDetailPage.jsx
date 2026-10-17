@@ -179,7 +179,7 @@ export default function MediaDetailPage() {
                   alt={media.title}
                   className={`w-full h-full object-cover select-none pointer-events-none filter transition-all duration-700 ${
                     isLightBlur
-                      ? 'blur-[4.5px] scale-102 brightness-95 contrast-105'
+                      ? 'blur-[10px] scale-106 brightness-90 contrast-110'
                       : 'blur-[20px] scale-115 brightness-90 contrast-115'
                   }`}
                 />
@@ -187,7 +187,7 @@ export default function MediaDetailPage() {
                 {/* Censor Blur Overlay */}
                 <div className={`absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 transition-colors ${
                   isLightBlur
-                    ? 'bg-slate-950/25 backdrop-blur-[1.5px]'
+                    ? 'bg-slate-950/35 backdrop-blur-[2.5px]'
                     : 'bg-slate-950/45 backdrop-blur-[4px]'
                 }`}>
                   <div className="w-14 h-14 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-2xl mb-3 ring-4 ring-amber-500/10">

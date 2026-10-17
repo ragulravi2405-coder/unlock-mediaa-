@@ -377,7 +377,7 @@ export default function CheckoutModal({ media, isOpen, onClose, onUnlocked }) {
                 alt={media.title}
                 className={`w-full h-full object-cover select-none pointer-events-none ${
                   (media.price === 199 || (media.originalFileName && media.originalFileName.includes('WhatsApp')) || (media.tags && media.tags.includes('199')))
-                    ? 'blur-[3px] scale-102 brightness-95'
+                    ? 'blur-[6.5px] scale-106 brightness-92'
                     : 'blur-[14px] scale-115 brightness-90'
                 }`}
               />
