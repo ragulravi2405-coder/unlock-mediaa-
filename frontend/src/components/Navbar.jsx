@@ -39,7 +39,7 @@ export default function Navbar() {
                 Unlock<span className="text-brand-600">Media</span>
               </span>
               <span className="text-[10px] uppercase font-bold tracking-widest text-brand-600 mt-0.5">
-                ₹99 - ₹149 Instant Pay & Unlock
+                ₹99 - ₹199 Instant Pay & Unlock
               </span>
             </div>
           </Link>
