@@ -10,10 +10,18 @@ async function apiRequest(endpoint, options = {}) {
     ...(options.headers || {})
   };
 
-  // Attach Admin token if stored
+  // Attach appropriate token (Admin or User)
   const adminToken = localStorage.getItem('pay_unlock_admin_token');
-  if (adminToken && !headers['Authorization']) {
-    headers['Authorization'] = `Bearer ${adminToken}`;
+  const userToken = localStorage.getItem('pay_unlock_user_token');
+
+  if (!headers['Authorization']) {
+    if (endpoint.startsWith('/admin') && adminToken) {
+      headers['Authorization'] = `Bearer ${adminToken}`;
+    } else if (userToken) {
+      headers['Authorization'] = `Bearer ${userToken}`;
+    } else if (adminToken) {
+      headers['Authorization'] = `Bearer ${adminToken}`;
+    }
   }
 
   const config = {
@@ -54,7 +62,13 @@ export const api = {
 
   getMediaById: (idOrSlug) => apiRequest(`/media/${idOrSlug}`),
 
-  // Payments
+  // User Authentication (Name + 8-Digit Password)
+  userAuthEntry: ({ name, password }) => apiRequest('/user-auth/entry', {
+    method: 'POST',
+    body: { name, password }
+  }),
+
+  getCurrentUser: () => apiRequest('/user-auth/me'),
   createCheckoutOrder: (mediaId) => {
     // Anonymous session token from browser session
     let customerSessionId = sessionStorage.getItem('anon_session_id');
@@ -72,6 +86,20 @@ export const api = {
     method: 'POST',
     body: paymentData
   }),
+
+  verifyDirectPayment: (paymentData) => apiRequest('/payments/verify-direct-link', {
+    method: 'POST',
+    body: paymentData
+  }),
+
+  // Submit UPI UTR for Admin Verification (Photo stays LOCKED until Admin approves)
+  submitUtrPayment: (payload) => apiRequest('/payments/submit-utr', {
+    method: 'POST',
+    body: payload
+  }),
+
+  // Check verification/approval status of an order
+  checkOrderStatus: (orderId) => apiRequest(`/payments/status/${orderId}`),
 
   // Protected Access & Stream Authorization
   requestMediaAccess: (mediaId, { purchaseToken, recoveryCode }) => apiRequest(`/media/${mediaId}/access`, {
@@ -103,9 +131,9 @@ export const api = {
   }),
 
   // Admin
-  adminLogin: (email, password) => apiRequest('/admin/auth/login', {
+  adminLogin: (usernameOrEmail, password) => apiRequest('/admin/auth/login', {
     method: 'POST',
-    body: { email, password }
+    body: { username: usernameOrEmail, email: usernameOrEmail, password }
   }),
 
   getDashboardStats: () => apiRequest('/admin/dashboard/stats'),
@@ -125,8 +153,22 @@ export const api = {
     const query = new URLSearchParams(params);
     return apiRequest(`/admin/orders?${query.toString()}`);
   },
+  approveAdminOrder: (orderId) => apiRequest(`/admin/orders/${orderId}/approve`, {
+    method: 'POST'
+  }),
+  rejectAdminOrder: (orderId, reason = '') => apiRequest(`/admin/orders/${orderId}/reject`, {
+    method: 'POST',
+    body: { reason }
+  }),
   refundAdminOrder: (orderId) => apiRequest(`/admin/orders/${orderId}/refund`, {
     method: 'POST'
   }),
-  getAdminMessages: () => apiRequest('/contact/messages')
+  getAdminMessages: () => apiRequest('/contact/messages'),
+  syncImagesFolder: () => apiRequest('/admin/sync-folder', {
+    method: 'POST'
+  })
 };
+
+export const RAZORPAY_ME_LINK = 'https://razorpay.me/@ravirahul601';
+export const RAZORPAY_ME_HANDLE = '@ravirahul601';
+

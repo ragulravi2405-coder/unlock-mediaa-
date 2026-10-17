@@ -20,21 +20,21 @@ export default function MediaCard({ media, onUnlockClick }) {
           loading="lazy"
           className={`w-full h-full object-cover transition-all duration-500 ${
             !unlocked
-              ? 'blur-2xl scale-125 brightness-75 select-none pointer-events-none'
+              ? 'blur-[16px] scale-115 brightness-90 contrast-110 select-none pointer-events-none'
               : 'group-hover:scale-105'
           }`}
         />
 
-        {/* Heavy Mystery / Frosted Veil Overlay for Locked Items */}
+        {/* Censor Blur Veil Overlay (blurred out details, outline lightly hinted) */}
         {!unlocked && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md flex flex-col items-center justify-center p-3 text-center z-10 transition-colors">
-            <div className="w-11 h-11 rounded-2xl bg-slate-900/90 border border-white/20 text-amber-400 flex items-center justify-center shadow-xl mb-2">
-              <Lock className="w-5 h-5 text-amber-400" />
+          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[3px] flex flex-col items-center justify-center p-3 text-center z-10 transition-colors">
+            <div className="w-10 h-10 rounded-2xl bg-slate-900/90 border border-white/25 text-amber-400 flex items-center justify-center shadow-xl mb-1.5 ring-2 ring-black/30">
+              <Lock className="w-4 h-4 text-amber-400" />
             </div>
-            <span className="text-xs font-bold text-white tracking-wide">
-              Locked & Censored
+            <span className="text-[11px] font-bold text-white tracking-wide drop-shadow-md">
+              {media.price === 1 ? '🔥 Special Deal: ₹1' : '🔒 Blurred & Censored'}
             </span>
-            <span className="text-[10px] text-amber-300 font-semibold mt-0.5">
+            <span className="text-[10px] text-amber-300 font-bold mt-0.5 drop-shadow-sm bg-black/60 px-2.5 py-0.5 rounded-full border border-amber-400/20">
               Pay ₹{media.price || 99} to Unblur & View
             </span>
           </div>
@@ -56,7 +56,13 @@ export default function MediaCard({ media, onUnlockClick }) {
             )}
           </span>
 
-          {media.category && (
+          {media.price === 1 && (
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md animate-pulse">
+              ₹1 TRIAL
+            </span>
+          )}
+
+          {media.category && media.price !== 1 && (
             <span className="hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/80 backdrop-blur-md text-slate-800 shadow-sm">
               {media.category}
             </span>
@@ -93,10 +99,10 @@ export default function MediaCard({ media, onUnlockClick }) {
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
           <div className="flex flex-col">
             <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              {unlocked ? 'Purchased' : 'One-Time Price'}
+              {unlocked ? 'Purchased' : (media.price === 1 ? 'Special Offer' : 'One-Time Price')}
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="font-display font-extrabold text-lg text-slate-900">
+              <span className={`font-display font-extrabold text-lg ${media.price === 1 ? 'text-rose-600' : 'text-slate-900'}`}>
                 ₹{media.price || 99}
               </span>
               <span className="text-[11px] text-slate-400 font-medium">INR</span>
@@ -114,7 +120,11 @@ export default function MediaCard({ media, onUnlockClick }) {
           ) : (
             <button
               onClick={() => onUnlockClick ? onUnlockClick(media) : null}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-brand-600 transition-all duration-200 shadow-sm active:scale-95"
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200 shadow-sm active:scale-95 ${
+                media.price === 1
+                  ? 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 shadow-rose-500/25'
+                  : 'bg-slate-900 hover:bg-brand-600'
+              }`}
             >
               <Lock className="w-3.5 h-3.5" />
               <span>Unlock for ₹{media.price || 99}</span>

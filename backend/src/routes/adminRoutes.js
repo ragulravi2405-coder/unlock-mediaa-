@@ -24,6 +24,9 @@ router.put('/media/:id', adminController.updateMedia);
 router.delete('/media/:id', adminController.deleteMedia);
 
 router.get('/orders', adminController.getOrdersList);
+router.post('/orders/:id/approve', adminController.approveOrder);
+router.post('/orders/:id/reject', adminController.rejectOrder);
 router.post('/orders/:id/refund', adminController.refundOrder);
+router.post('/sync-folder', adminController.syncFolder);
 
 module.exports = router;

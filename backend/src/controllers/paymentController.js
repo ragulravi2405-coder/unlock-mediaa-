@@ -248,3 +248,244 @@ exports.handleWebhook = async (req, res) => {
     return res.status(500).json({ error: 'Webhook processing error' });
   }
 };
+
+/**
+ * POST /api/payments/verify-direct-link
+ * Verifies and unlocks media paid via direct Razorpay link (razorpay.me/@ravirahul601)
+ */
+exports.verifyDirectLinkPayment = async (req, res) => {
+  try {
+    const { mediaId, paymentReference, customerSessionId, customerName } = req.body;
+
+    if (!mediaId) {
+      return res.status(400).json({ error: 'Media ID is required' });
+    }
+
+    const trimmedRef = (paymentReference && typeof paymentReference === 'string') ? paymentReference.trim() : '';
+
+    if (!trimmedRef || trimmedRef.length < 6 || trimmedRef.startsWith('test_unlock_') || trimmedRef.startsWith('rzpme_')) {
+      return res.status(400).json({
+        error: 'Valid Payment Reference / UPI UTR number is required. Please pay first on Razorpay/UPI and enter your transaction reference number to unlock.'
+      });
+    }
+
+    const media = await Media.findOne({ _id: mediaId, isPublished: true });
+    if (!media) {
+      return res.status(404).json({ error: 'Selected media item was not found' });
+    }
+
+    // Check if this paymentReference/UTR has already been used for this or another purchase
+    const existingPurchase = await Purchase.findOne({ paymentId: trimmedRef });
+    if (existingPurchase) {
+      return res.status(400).json({
+        error: 'This Payment Reference / UTR number has already been used and verified. Please enter your own payment transaction number.'
+      });
+    }
+
+    const priceInINR = media.price || 199;
+    const amountInPaise = Math.round(priceInINR * 100);
+    const safeRef = trimmedRef;
+
+    const orderId = `order_me_${Date.now()}_${media._id.toString().slice(-4)}`;
+    const receipt = `rcpt_me_${Date.now()}`;
+
+    // Create completed order
+    const order = await Order.create({
+      orderId,
+      mediaId: media._id,
+      amount: amountInPaise,
+      currency: 'INR',
+      status: 'paid',
+      paymentId: safeRef,
+      receipt,
+      customerSessionId: customerSessionId || 'anonymous',
+      verifiedAt: new Date(),
+      metadata: {
+        gateway: 'razorpay.me/@ravirahul601',
+        paymentReference: safeRef,
+        customerName: customerName || 'Guest',
+        mediaTitle: media.title
+      }
+    });
+
+    // Generate cryptographic unlock token & recovery code
+    const { rawToken, tokenHash, recoveryCode } = generatePurchaseToken();
+
+    const purchase = await Purchase.create({
+      purchaseTokenHash: tokenHash,
+      recoveryCode,
+      mediaId: media._id,
+      orderId,
+      paymentId: safeRef,
+      amountPaid: priceInINR,
+      currency: 'INR',
+      status: 'active'
+    });
+
+    // Increment unlock counter
+    await Media.findByIdAndUpdate(media._id, { $inc: { unlockCount: 1 } });
+
+    console.log(`[Razorpay.me Success] Unlocked "${media.title}" for ₹${priceInINR} (Payment Ref: ${safeRef})`);
+
+    return res.json({
+      success: true,
+      message: 'Payment verified! Media unlocked successfully.',
+      purchaseToken: rawToken,
+      recoveryCode,
+      mediaId: media._id,
+      orderId,
+      paymentId: safeRef,
+      amountPaid: priceInINR
+    });
+  } catch (err) {
+    console.error('[Direct Link Payment Error]', err);
+    return res.status(500).json({ error: 'Failed to complete unlock: ' + err.message });
+  }
+};
+
+/**
+ * POST /api/payments/submit-utr
+ * Submits UPI UTR payment for Admin Review (Photo remains LOCKED until Rahul approves it)
+ */
+exports.submitUtrPayment = async (req, res) => {
+  try {
+    const { mediaId, utrNumber, customerName, customerSessionId } = req.body;
+
+    if (!mediaId) {
+      return res.status(400).json({ error: 'Media ID is required' });
+    }
+
+    const trimmedUtr = (utrNumber && typeof utrNumber === 'string') ? utrNumber.trim() : '';
+
+    if (!trimmedUtr || trimmedUtr.length < 8) {
+      return res.status(400).json({
+        error: 'Please enter a valid 12-digit UPI UTR / Transaction number from Google Pay, PhonePe, Paytm, or BHIM.'
+      });
+    }
+
+    const media = await Media.findOne({ _id: mediaId, isPublished: true });
+    if (!media) {
+      return res.status(404).json({ error: 'Selected media item was not found' });
+    }
+
+    // Check if this exact UTR is already approved
+    const existingApproved = await Purchase.findOne({ paymentId: trimmedUtr });
+    if (existingApproved) {
+      return res.status(400).json({
+        error: 'This UPI UTR number has already been verified and used. Please enter your genuine payment transaction number.'
+      });
+    }
+
+    // Check if an order with this UTR already exists
+    const existingOrder = await Order.findOne({ paymentId: trimmedUtr });
+    if (existingOrder) {
+      if (existingOrder.status === 'paid') {
+        return res.status(400).json({
+          error: 'This UPI UTR has already been approved and paid.'
+        });
+      }
+      return res.json({
+        success: true,
+        status: existingOrder.status,
+        orderId: existingOrder.orderId,
+        mediaId: media._id,
+        amount: existingOrder.amount / 100,
+        utrNumber: trimmedUtr,
+        message: 'This payment request is already submitted and awaiting Admin verification.'
+      });
+    }
+
+    const priceInINR = media.price || 99;
+    const amountInPaise = Math.round(priceInINR * 100);
+    const orderId = `order_utr_${Date.now()}_${media._id.toString().slice(-4)}`;
+    const receipt = `rcpt_utr_${Date.now()}`;
+
+    // Create Order with status 'pending_verification' - PHOTO REMAINS LOCKED!
+    const order = await Order.create({
+      orderId,
+      mediaId: media._id,
+      amount: amountInPaise,
+      currency: 'INR',
+      status: 'pending_verification',
+      paymentId: trimmedUtr,
+      receipt,
+      customerSessionId: customerSessionId || 'anonymous',
+      metadata: {
+        paymentMethod: 'UPI_UTR_APPROVAL',
+        utrNumber: trimmedUtr,
+        customerName: customerName || 'Guest Buyer',
+        mediaTitle: media.title,
+        submittedAt: new Date()
+      }
+    });
+
+    console.log(`[UTR Submitted] Order ${orderId} for "${media.title}" (₹${priceInINR}) with UTR: ${trimmedUtr}. Status: PENDING_VERIFICATION.`);
+
+    return res.status(201).json({
+      success: true,
+      status: 'pending_verification',
+      orderId,
+      mediaId: media._id,
+      amount: priceInINR,
+      utrNumber: trimmedUtr,
+      message: 'Payment submitted! Admin will verify your UTR in bank records and approve.'
+    });
+  } catch (err) {
+    console.error('[Submit UTR Error]', err);
+    return res.status(500).json({ error: 'Failed to submit payment request: ' + err.message });
+  }
+};
+
+/**
+ * GET /api/payments/status/:orderId
+ * Checks current approval status of an order
+ */
+exports.checkOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const order = await Order.findOne({ orderId }).populate('mediaId', 'title previewUrl price mediaType');
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.status === 'paid') {
+      const purchase = await Purchase.findOne({ orderId });
+      return res.json({
+        success: true,
+        status: 'paid',
+        mediaId: order.mediaId._id,
+        orderId: order.orderId,
+        paymentId: order.paymentId,
+        recoveryCode: purchase ? purchase.recoveryCode : (order.metadata?.recoveryCode || null),
+        purchaseToken: order.metadata?.rawToken || null,
+        message: 'Payment verified and approved by Admin! Photo is unlocked.'
+      });
+    }
+
+    if (order.status === 'rejected') {
+      return res.json({
+        success: false,
+        status: 'rejected',
+        orderId: order.orderId,
+        message: order.failureReason || 'Payment rejected: No matching transaction found in bank records.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      status: order.status, // 'pending_verification'
+      orderId: order.orderId,
+      mediaId: order.mediaId._id,
+      utrNumber: order.paymentId,
+      message: 'Payment is awaiting Admin verification against bank/UPI records.'
+    });
+  } catch (err) {
+    console.error('[Check Order Status Error]', err);
+    return res.status(500).json({ error: 'Failed to check order status' });
+  }
+};
+

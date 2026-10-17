@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const { resolveFilePath } = require('../services/storageService');
+const { generatePurchaseToken } = require('../services/tokenService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'pay_unlock_secure_jwt_secret_dev';
 
@@ -15,13 +16,20 @@ const JWT_SECRET = process.env.JWT_SECRET || 'pay_unlock_secure_jwt_secret_dev';
  */
 exports.adminLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    const identifier = (username || email || '').toLowerCase().trim();
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Please enter both email and password' });
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Please enter both username and password' });
     }
 
-    const admin = await Admin.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    const admin = await Admin.findOne({
+      $or: [
+        { username: identifier },
+        { email: identifier }
+      ]
+    }).select('+password');
+
     if (!admin) {
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
@@ -64,6 +72,7 @@ exports.getDashboardStats = async (req, res) => {
     const [
       totalOrders,
       paidOrders,
+      pendingOrdersCount,
       totalMedia,
       photosCount,
       videosCount,
@@ -72,11 +81,12 @@ exports.getDashboardStats = async (req, res) => {
     ] = await Promise.all([
       Order.countDocuments(),
       Order.find({ status: 'paid' }),
+      Order.countDocuments({ status: 'pending_verification' }),
       Media.countDocuments(),
       Media.countDocuments({ mediaType: 'photo' }),
       Media.countDocuments({ mediaType: 'video' }),
       ContactMessage.countDocuments({ status: 'unread' }),
-      Order.find().sort({ createdAt: -1 }).limit(8).populate('mediaId', 'title mediaType price previewUrl')
+      Order.find().sort({ createdAt: -1 }).limit(10).populate('mediaId', 'title mediaType price previewUrl')
     ]);
 
     const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.amount / 100), 0);
@@ -86,6 +96,7 @@ exports.getDashboardStats = async (req, res) => {
       stats: {
         totalRevenue,
         paidOrdersCount: paidOrders.length,
+        pendingOrdersCount,
         totalOrdersCount: totalOrders,
         totalMedia,
         photosCount,
@@ -331,3 +342,116 @@ exports.refundOrder = async (req, res) => {
     return res.status(500).json({ error: 'Failed to refund order' });
   }
 };
+
+/**
+ * POST /api/admin/sync-folder
+ * Scans and syncs files dropped into "add_images_here" folder
+ */
+exports.syncFolder = async (req, res) => {
+  try {
+    const { syncImagesFolder } = require('../services/imageSyncService');
+    const result = await syncImagesFolder();
+    return res.json({
+      success: true,
+      message: `Folder sync completed! Added ${result.added} new item(s).`,
+      ...result
+    });
+  } catch (err) {
+    console.error('[Admin Sync Folder Error]', err);
+    return res.status(500).json({ error: 'Failed to sync folder: ' + err.message });
+  }
+};
+
+/**
+ * POST /api/admin/orders/:id/approve
+ * Admin approves a pending UTR payment and unlocks the photo for the customer
+ */
+exports.approveOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id).populate('mediaId');
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.status === 'paid') {
+      return res.json({ success: true, message: 'Order is already approved and paid' });
+    }
+
+    const { rawToken, tokenHash, recoveryCode } = generatePurchaseToken();
+
+    order.status = 'paid';
+    order.verifiedAt = new Date();
+    order.metadata = {
+      ...(order.metadata || {}),
+      rawToken,
+      recoveryCode,
+      approvedAt: new Date()
+    };
+    await order.save();
+
+    // Create or update Purchase
+    let purchase = await Purchase.findOne({ orderId: order.orderId });
+    if (!purchase) {
+      purchase = await Purchase.create({
+        purchaseTokenHash: tokenHash,
+        recoveryCode,
+        mediaId: order.mediaId._id || order.mediaId,
+        orderId: order.orderId,
+        paymentId: order.paymentId || `admin_approved_${Date.now()}`,
+        amountPaid: order.amount / 100,
+        currency: order.currency || 'INR',
+        status: 'active'
+      });
+    }
+
+    // Increment unlock counter on media
+    await Media.findByIdAndUpdate(order.mediaId._id || order.mediaId, { $inc: { unlockCount: 1 } });
+
+    console.log(`[Admin Approved] Order ${order.orderId} approved by Admin. Photo "${order.mediaId?.title}" is now UNLOCKED!`);
+
+    return res.json({
+      success: true,
+      message: `Order approved! Photo "${order.mediaId?.title}" is now unlocked for the buyer.`,
+      order
+    });
+  } catch (err) {
+    console.error('[Approve Order Error]', err);
+    return res.status(500).json({ error: 'Failed to approve order: ' + err.message });
+  }
+};
+
+/**
+ * POST /api/admin/orders/:id/reject
+ * Admin rejects a fake or unverified UTR
+ */
+exports.rejectOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const order = await Order.findById(id).populate('mediaId');
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    order.status = 'rejected';
+    order.failureReason = reason || 'Rejected by Admin: No matching transaction found in bank/UPI records.';
+    order.metadata = {
+      ...(order.metadata || {}),
+      rejectedAt: new Date(),
+      rejectionReason: order.failureReason
+    };
+    await order.save();
+
+    console.log(`[Admin Rejected] Order ${order.orderId} rejected as fake/unverified.`);
+
+    return res.json({
+      success: true,
+      message: 'Order rejected. Photo remains locked for this user.'
+    });
+  } catch (err) {
+    console.error('[Reject Order Error]', err);
+    return res.status(500).json({ error: 'Failed to reject order: ' + err.message });
+  }
+};
+

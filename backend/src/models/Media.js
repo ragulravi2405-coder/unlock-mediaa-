@@ -38,8 +38,9 @@ const mediaSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true,
-    default: 99, // default 99 INR
-    min: [1, 'Price must be at least ₹1']
+    default: 99, // default ₹99 INR
+    min: [1, 'Price must be at least ₹1'],
+    max: [499, 'Price must not exceed ₹499']
   },
   currency: {
     type: String,

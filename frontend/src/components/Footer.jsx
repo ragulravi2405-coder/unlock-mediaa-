@@ -21,7 +21,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-              Instant pay-to-unlock platform for original 8K master photography and 4K cinema video reels. Transparent pricing at ₹99 per item with zero signups or recurring subscriptions.
+              Instant pay-to-unlock platform for original 8K master photography and 4K cinema video reels. Transparent pricing from ₹99 to ₹149 per item (with special ₹1 trial) with zero signups or recurring subscriptions.
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-500 pt-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />

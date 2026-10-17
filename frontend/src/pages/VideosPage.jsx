@@ -50,7 +50,7 @@ export default function VideosPage() {
             All 4K Cinema Reels
           </h1>
           <p className="text-slate-500 text-sm mt-2 max-w-xl">
-            Drone sweeps, slow motion time-lapses, and cinematic sequences in 4K 60FPS. Unlock individual master video clips for ₹99 each.
+            Drone sweeps, slow motion time-lapses, and cinematic sequences in 4K 60FPS. Unlock individual master video clips from ₹99 to ₹149 each.
           </p>
         </div>
 

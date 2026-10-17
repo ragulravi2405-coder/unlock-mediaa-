@@ -50,7 +50,7 @@ export default function PhotosPage() {
             All Master Photos
           </h1>
           <p className="text-slate-500 text-sm mt-2 max-w-xl">
-            Uncompressed RAW and 8K master photographs. Unlocks individual high-resolution master files for ₹99 each.
+            Uncompressed RAW and 8K master photographs. Unlock individual high-resolution master files from ₹99 to ₹149 each (special ₹1 trial deal available).
           </p>
         </div>
 

@@ -36,7 +36,7 @@ export default function TermsPage() {
             2. Transparent Pricing & Payment Terms
           </h2>
           <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
-            <li><strong>Standard Item Price:</strong> Each locked photo or video is sold individually for <strong>₹99 INR</strong> (inclusive of applicable taxes).</li>
+            <li><strong>Standard Item Price:</strong> Each locked photo or video is sold individually between <strong>₹99 and ₹149 INR</strong> (with special trial offers at ₹1 INR).</li>
             <li><strong>No Recurring Subscriptions:</strong> You are billed once per unlocked media item. There are no recurring monthly charges, membership fees, or unexpected renewals.</li>
             <li><strong>Payment Gateways:</strong> Payments are processed via Razorpay. Accepted instruments include UPI (Google Pay, PhonePe, Paytm, BHIM), Debit/Credit Cards (Visa, MasterCard, RuPay), and Internet Banking across major Indian banks.</li>
           </ul>

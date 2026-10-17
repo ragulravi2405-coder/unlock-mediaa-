@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +18,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await api.adminLogin(email, password);
+      const res = await api.adminLogin(username, password);
       if (res.success && res.token) {
         localStorage.setItem('pay_unlock_admin_token', res.token);
         localStorage.setItem('pay_unlock_admin_user', JSON.stringify(res.admin));
@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
       }
     } catch (err) {
       console.error('Admin login failed:', err);
-      setError(err.message || 'Invalid email or administrative password');
+      setError(err.message || 'Invalid username or password');
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
             Admin Management Portal
           </h1>
           <p className="text-xs text-slate-500">
-            Enter authorized credentials to manage media, orders, and pricing.
+            Enter private administrative credentials to manage media, orders, and approvals.
           </p>
         </div>
 
@@ -59,15 +59,15 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Admin Email
+              Admin Username
             </label>
             <div className="relative">
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@unlockmedia.com"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter admin username"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
@@ -87,10 +87,6 @@ export default function AdminLoginPage() {
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500">
-            <strong>Default Dev Login:</strong> <code>admin@unlockmedia.com</code> / <code>AdminSecurePass123!</code>
           </div>
 
           <button

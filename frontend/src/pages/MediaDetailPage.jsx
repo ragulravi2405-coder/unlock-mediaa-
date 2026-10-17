@@ -91,7 +91,7 @@ export default function MediaDetailPage() {
     if (navigator.share) {
       navigator.share({
         title: media.title,
-        text: `Unlock master media for ₹99: ${media.title}`,
+        text: `Unlock master media for ₹${media.price || 199}: ${media.title}`,
         url: window.location.href
       }).catch(() => {});
     } else {
@@ -173,30 +173,34 @@ export default function MediaDetailPage() {
             <img
               src={media.previewUrl}
               alt={media.title}
-              className="w-full h-full object-cover blur-3xl scale-150 brightness-50 contrast-125 select-none pointer-events-none filter transition-all duration-700"
+              className="w-full h-full object-cover blur-[20px] scale-115 brightness-90 contrast-115 select-none pointer-events-none filter transition-all duration-700"
             />
 
-            {/* Heavy Frosted Glass & Lock Overlay */}
-            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-10">
-              <div className="w-16 h-16 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-2xl mb-4 ring-4 ring-amber-500/10">
-                <Lock className="w-8 h-8 text-amber-400" />
+            {/* Censor Blur Overlay (details heavily blurred, outline hinted) */}
+            <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[4px] flex flex-col items-center justify-center p-6 text-center z-10">
+              <div className="w-14 h-14 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-400 flex items-center justify-center shadow-2xl mb-3 ring-4 ring-amber-500/10">
+                <Lock className="w-7 h-7 text-amber-400" />
               </div>
 
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-2">
-                🔒 Censored & Blurred Preview
+              <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 mb-2 backdrop-blur-md">
+                {media.price === 1 ? '🔥 Special ₹1 Trial Deal' : '🔒 Blurred & Censored Preview'}
               </span>
 
               <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-white max-w-lg shadow-sm">
-                Content Hidden Until Payment
+                Unlock High-Definition Master
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-300 max-w-md mt-2 mb-6 leading-relaxed">
-                This {media.mediaType === 'video' ? '4K cinema video' : '8K master photo'} is completely blurred. Pay ₹{media.price || 99} to immediately unblur, unlock, and watch or download the full master.
+              <p className="text-xs sm:text-sm text-slate-200 max-w-md mt-2 mb-6 leading-relaxed">
+                Preview is softly blurred. Pay {media.price === 1 ? 'just ₹1' : `₹${media.price || 99}`} to immediately unblur, unlock, and watch or download the full master.
               </p>
 
               <button
                 onClick={() => setCheckoutOpen(true)}
-                className="px-7 py-3.5 rounded-2xl font-display font-extrabold text-sm text-white bg-brand-600 hover:bg-brand-500 shadow-xl shadow-brand-500/30 transition-all duration-200 flex items-center gap-2 active:scale-95"
+                className={`px-7 py-3.5 rounded-2xl font-display font-extrabold text-sm text-white transition-all duration-200 flex items-center gap-2 active:scale-95 shadow-xl ${
+                  media.price === 1
+                    ? 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 shadow-rose-500/30'
+                    : 'bg-brand-600 hover:bg-brand-500 shadow-brand-500/30'
+                }`}
               >
                 <Zap className="w-4 h-4 fill-white" />
                 <span>Pay ₹{media.price || 99} to Unblur & Unlock Now</span>
@@ -294,7 +298,7 @@ export default function MediaDetailPage() {
                 Individual Access
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="font-display font-extrabold text-3xl text-slate-900">
+                <span className={`font-display font-extrabold text-3xl ${media.price === 1 ? 'text-rose-600' : 'text-slate-900'}`}>
                   ₹{media.price || 99}
                 </span>
                 <span className="text-xs font-semibold text-slate-500">INR</span>
@@ -328,7 +332,11 @@ export default function MediaDetailPage() {
               <div className="space-y-4">
                 <button
                   onClick={() => setCheckoutOpen(true)}
-                  className="w-full py-3.5 px-4 rounded-xl font-display font-bold text-sm text-white bg-brand-600 hover:bg-brand-500 active:scale-[0.99] transition-all duration-200 shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2"
+                  className={`w-full py-3.5 px-4 rounded-xl font-display font-bold text-sm text-white active:scale-[0.99] transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
+                    media.price === 1
+                      ? 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 shadow-rose-500/25'
+                      : 'bg-brand-600 hover:bg-brand-500 shadow-brand-500/25'
+                  }`}
                 >
                   <Lock className="w-4 h-4" />
                   <span>Unlock for ₹{media.price || 99}</span>
@@ -337,7 +345,7 @@ export default function MediaDetailPage() {
                 <div className="space-y-2 text-xs text-slate-500">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    <span>Razorpay Secure Standard Checkout</span>
+                    <span>Razorpay (@ravirahul601) Verified</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-brand-500 flex-shrink-0" />

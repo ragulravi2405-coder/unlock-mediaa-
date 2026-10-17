@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "seed": "node src/seed/seedMedia.js"
+    "seed": "node src/seed/seedMedia.js",
+    "sync-images": "node src/scripts/syncImages.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -18,7 +18,11 @@ import {
   AlertCircle,
   MessageSquare,
   ShieldAlert,
-  Loader2
+  Loader2,
+  FolderPlus,
+  Clock,
+  XCircle,
+  Check
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -33,6 +37,7 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncingFolder, setSyncingFolder] = useState(false);
 
   // Add media form state
   const [newMedia, setNewMedia] = useState({
@@ -41,7 +46,7 @@ export default function AdminDashboardPage() {
     mediaType: 'photo',
     category: 'Landscapes',
     tags: '',
-    price: 99,
+    price: 199,
     previewUrl: '',
     originalFileKey: '',
     allowDownload: true,
@@ -158,7 +163,7 @@ export default function AdminDashboardPage() {
           mediaType: 'photo',
           category: 'Landscapes',
           tags: '',
-          price: 99,
+          price: 199,
           previewUrl: '',
           originalFileKey: '',
           allowDownload: true,
@@ -191,6 +196,56 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleApproveOrder = async (orderId) => {
+    try {
+      const res = await api.approveAdminOrder(orderId);
+      if (res.success) {
+        addToast(res.message || 'Payment approved! Photo unlocked for customer.', 'success');
+        loadAllData();
+      } else {
+        addToast(res.error || 'Failed to approve order', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Approval error', 'error');
+    }
+  };
+
+  const handleRejectOrder = async (orderId) => {
+    const reason = window.prompt('Reason for rejecting (e.g. No money received in bank/UPI records):', 'No matching transaction in bank records.');
+    if (reason === null) return;
+
+    try {
+      const res = await api.rejectAdminOrder(orderId, reason);
+      if (res.success) {
+        addToast('Payment rejected as fake/unverified. Photo remains locked.', 'info');
+        loadAllData();
+      } else {
+        addToast(res.error || 'Failed to reject order', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Rejection error', 'error');
+    }
+  };
+
+  const handleSyncImagesFolder = async () => {
+    setSyncingFolder(true);
+    try {
+      const res = await api.syncImagesFolder();
+      if (res.success) {
+        addToast(`✅ Folder Sync: Added ${res.added} new item(s) from "add_images_here"!`, 'success');
+        loadAllData();
+      } else {
+        addToast(res.error || 'Failed to sync folder', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Folder sync failed', 'error');
+    } finally {
+      setSyncingFolder(false);
+    }
+  };
+
+  const pendingOrders = orders.filter((o) => o.status === 'pending_verification');
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
       
@@ -204,11 +259,21 @@ export default function AdminDashboardPage() {
             UnlockMedia Management
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage ₹99 digital assets, monitor transactions, and handle customer recovery inquiries.
+            Manage ₹99 - ₹149 digital assets (and ₹1 trial), review buyer payments, and approve instant unlocks.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={handleSyncImagesFolder}
+            disabled={syncingFolder}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-500/20 disabled:opacity-50"
+            title="Scan 'add_images_here' folder and sync new photos to website"
+          >
+            <FolderPlus className={`w-4 h-4 ${syncingFolder ? 'animate-spin' : ''}`} />
+            <span>{syncingFolder ? 'Syncing...' : 'Sync "add_images_here"'}</span>
+          </button>
+
           <button
             onClick={loadAllData}
             className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
@@ -240,6 +305,18 @@ export default function AdminDashboardPage() {
             </span>
           </div>
 
+          <div className="p-5 rounded-2xl bg-white border border-amber-300 shadow-sm space-y-1 relative overflow-hidden bg-gradient-to-br from-amber-50/50 to-white">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" /> Pending Approvals
+            </span>
+            <div className="font-display font-extrabold text-2xl sm:text-3xl text-amber-900">
+              {pendingOrders.length}
+            </div>
+            <span className="text-[11px] text-amber-800 font-semibold block">
+              {pendingOrders.length > 0 ? '⚠️ Awaiting Your Review' : 'All Orders Verified'}
+            </span>
+          </div>
+
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Catalog Media</span>
             <div className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
@@ -251,21 +328,11 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Order Invocations</span>
-            <div className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
-              {stats.totalOrdersCount || 0}
-            </div>
-            <span className="text-[11px] text-brand-600 font-semibold block">
-              Razorpay Checkouts
-            </span>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Customer Inquiries</span>
             <div className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
               {messages.length}
             </div>
-            <span className="text-[11px] text-amber-600 font-semibold block">
+            <span className="text-[11px] text-brand-600 font-semibold block">
               {stats.unreadMessages || 0} Open Tickets
             </span>
           </div>
@@ -282,6 +349,22 @@ export default function AdminDashboardPage() {
         >
           Recent Activity
         </button>
+
+        <button
+          onClick={() => setActiveTab('approvals')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all relative flex items-center gap-1.5 ${
+            activeTab === 'approvals'
+              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25'
+              : 'text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200'
+          }`}
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span>Payment Approvals ({pendingOrders.length})</span>
+          {pendingOrders.length > 0 && (
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+          )}
+        </button>
+
         <button
           onClick={() => setActiveTab('media')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -290,6 +373,7 @@ export default function AdminDashboardPage() {
         >
           Media Catalog ({mediaList.length})
         </button>
+
         <button
           onClick={() => setActiveTab('add-media')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
@@ -299,6 +383,7 @@ export default function AdminDashboardPage() {
           <PlusCircle className="w-3.5 h-3.5" />
           <span>Upload New Media</span>
         </button>
+
         <button
           onClick={() => setActiveTab('orders')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -307,6 +392,7 @@ export default function AdminDashboardPage() {
         >
           Orders & Transactions ({orders.length})
         </button>
+
         <button
           onClick={() => setActiveTab('messages')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -319,10 +405,82 @@ export default function AdminDashboardPage() {
 
       {/* Tab: Overview / Recent Orders */}
       {activeTab === 'overview' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
-          <h3 className="font-display font-bold text-lg text-slate-900">
-            Recent Authoritative Transactions
-          </h3>
+        <div className="space-y-6">
+          {/* Urgent Approvals Banner in Overview */}
+          {pendingOrders.length > 0 && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 rounded-3xl border-2 border-amber-300 p-6 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-3 w-3 rounded-full bg-amber-500 animate-ping"></span>
+                  <h3 className="font-display font-extrabold text-base text-amber-950 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-amber-600" />
+                    <span>⚠️ {pendingOrders.length} New Payment Request(s) Awaiting Your Review!</span>
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setActiveTab('approvals')}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition-colors"
+                >
+                  View All Approvals
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs bg-white rounded-2xl overflow-hidden border border-amber-200">
+                  <thead className="bg-amber-100/70 text-amber-950 font-bold uppercase text-[11px]">
+                    <tr>
+                      <th className="p-3.5">Media Title</th>
+                      <th className="p-3.5">Price</th>
+                      <th className="p-3.5">Buyer 12-Digit UTR</th>
+                      <th className="p-3.5">Customer</th>
+                      <th className="p-3.5">Time</th>
+                      <th className="p-3.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-100">
+                    {pendingOrders.map((order) => (
+                      <tr key={order._id} className="hover:bg-amber-50/40">
+                        <td className="p-3.5 font-bold text-slate-900 truncate max-w-xs">
+                          {order.mediaId?.title || 'Unknown Media'}
+                        </td>
+                        <td className="p-3.5 font-extrabold text-slate-900">
+                          ₹{order.amount / 100}
+                        </td>
+                        <td className="p-3.5 font-mono font-extrabold text-sm text-brand-700 select-all">
+                          {order.paymentId}
+                        </td>
+                        <td className="p-3.5 text-slate-600">
+                          {order.metadata?.customerName || 'Guest'}
+                        </td>
+                        <td className="p-3.5 text-slate-400">
+                          {new Date(order.createdAt).toLocaleTimeString()}
+                        </td>
+                        <td className="p-3.5 text-right space-x-2">
+                          <button
+                            onClick={() => handleApproveOrder(order._id)}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all active:scale-95"
+                          >
+                            ✅ Approve & Unlock
+                          </button>
+                          <button
+                            onClick={() => handleRejectOrder(order._id)}
+                            className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors"
+                          >
+                            ❌ Reject Fake
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+            <h3 className="font-display font-bold text-lg text-slate-900">
+              Recent Authoritative Transactions
+            </h3>
           {orders.length === 0 ? (
             <p className="text-xs text-slate-500 py-6 text-center">No orders recorded yet.</p>
           ) : (
@@ -362,6 +520,89 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3 text-slate-400">
                         {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+      )}
+
+      {/* Tab: Dedicated Payment Approvals */}
+      {activeTab === 'approvals' && (
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-display font-extrabold text-xl text-slate-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-600" />
+                <span>UPI Payment Approvals & Verification</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Customers submit their 12-digit UTR after paying on Razorpay/UPI. Review UTR in your bank records and approve to instantly unlock the photo.
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs self-start sm:self-auto">
+              {pendingOrders.length} Pending Review
+            </span>
+          </div>
+
+          {pendingOrders.length === 0 ? (
+            <div className="p-12 text-center rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+              <h4 className="font-display font-bold text-slate-800 text-sm">No Pending Approvals!</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                All payment submissions have been reviewed. When a customer pays and submits their UTR, it will appear here for your verification.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] bg-slate-50">
+                    <th className="p-3.5">Media Title</th>
+                    <th className="p-3.5">Price</th>
+                    <th className="p-3.5">12-Digit UPI UTR</th>
+                    <th className="p-3.5">Customer</th>
+                    <th className="p-3.5">Submitted At</th>
+                    <th className="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {pendingOrders.map((order) => (
+                    <tr key={order._id} className="hover:bg-amber-50/50">
+                      <td className="p-3.5 font-bold text-slate-900">
+                        {order.mediaId?.title || 'Unknown Media'}
+                      </td>
+                      <td className="p-3.5 font-extrabold text-slate-900 text-sm">
+                        ₹{order.amount / 100}
+                      </td>
+                      <td className="p-3.5">
+                        <span className="px-2.5 py-1 rounded-lg font-mono font-extrabold text-sm text-brand-700 bg-brand-50 border border-brand-200 select-all">
+                          {order.paymentId}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-slate-600 font-medium">
+                        {order.metadata?.customerName || 'Guest User'}
+                      </td>
+                      <td className="p-3.5 text-slate-400">
+                        {new Date(order.createdAt).toLocaleString()}
+                      </td>
+                      <td className="p-3.5 text-right space-x-2">
+                        <button
+                          onClick={() => handleApproveOrder(order._id)}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-95 transition-all"
+                        >
+                          ✅ Approve & Unlock Photo
+                        </button>
+                        <button
+                          onClick={() => handleRejectOrder(order._id)}
+                          className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors"
+                        >
+                          ❌ Reject Fake
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -462,7 +703,7 @@ export default function AdminDashboardPage() {
               Upload New Pay-to-Unlock Media
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Provide public preview file and protected master asset. Sets default price to ₹99.
+              Provide public preview file and protected master asset. Recommended price between ₹149 and ₹499.
             </p>
           </div>
 
@@ -511,11 +752,12 @@ export default function AdminDashboardPage() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                  Price (INR)
+                  Price (INR: ₹1 or ₹99 - ₹149) *
                 </label>
                 <input
                   type="number"
                   min="1"
+                  max="499"
                   value={newMedia.price}
                   onChange={(e) => setNewMedia({ ...newMedia, price: Number(e.target.value) })}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-900"
@@ -674,12 +916,34 @@ export default function AdminDashboardPage() {
                     </td>
                     <td className="py-3">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        order.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                        order.status === 'paid'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : order.status === 'pending_verification'
+                          ? 'bg-amber-100 text-amber-800 font-extrabold animate-pulse'
+                          : order.status === 'rejected'
+                          ? 'bg-rose-100 text-rose-800'
+                          : 'bg-slate-100 text-slate-600'
                       }`}>
-                        {order.status}
+                        {order.status === 'pending_verification' ? 'Pending Review' : order.status}
                       </span>
                     </td>
-                    <td className="py-3 text-right">
+                    <td className="py-3 text-right space-x-1.5">
+                      {order.status === 'pending_verification' && (
+                        <>
+                          <button
+                            onClick={() => handleApproveOrder(order._id)}
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                          >
+                            ✅ Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectOrder(order._id)}
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
+                          >
+                            ❌ Reject
+                          </button>
+                        </>
+                      )}
                       {order.status === 'paid' && (
                         <button
                           onClick={() => handleRefundOrder(order._id)}

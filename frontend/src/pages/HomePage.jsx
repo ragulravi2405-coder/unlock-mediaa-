@@ -61,7 +61,7 @@ export default function HomePage() {
           {/* Top Trust Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-bold text-slate-800 mb-6 animate-fade-in">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-            <span>No Account Required • Instant ₹99 Razorpay Unlock</span>
+            <span>No Account Required • ₹99 - ₹149 Razorpay Unlock • Special ₹1 Trial Deal</span>
           </div>
 
           <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-slate-900 tracking-tight max-w-4xl mx-auto leading-[1.15]">
@@ -69,7 +69,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Browse high-resolution preview clips and photos. Unlock full uncompressed masters individually for just <strong className="text-slate-900 font-bold">₹99 each</strong>. Zero subscription traps.
+            Browse softly blurred teaser photos. Unlock full uncompressed masters from <strong className="text-slate-900 font-bold">₹99 to ₹149 each</strong> (special ₹1 trial available!). Zero subscription traps.
           </p>
 
           {/* Search Bar */}
@@ -262,10 +262,10 @@ export default function HomePage() {
                 2
               </div>
               <h3 className="font-display font-bold text-lg text-white">
-                Pay ₹99 via Razorpay
+                Pay via Razorpay (@ravirahul601)
               </h3>
               <p className="text-slate-400 text-xs leading-relaxed">
-                Click Unlock for ₹99 and complete payment via UPI (GPay, PhonePe, Paytm), Credit/Debit Card or Netbanking.
+                Click Unlock from ₹99 (or ₹1 trial) and complete payment via Razorpay / UPI (GPay, PhonePe, Paytm, Cards).
               </p>
             </div>
 

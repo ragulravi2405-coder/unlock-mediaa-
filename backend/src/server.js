@@ -19,38 +19,44 @@ const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
 connectDB().then(async () => {
-  // Check if media collection has items; if not, auto-seed
   try {
-    const count = await Media.countDocuments();
-    if (count === 0) {
-      console.log('[Auto-Seed] Media collection is empty. Running initial catalog seed...');
-      // Run seed without process.exit
-      const { sampleMedia } = require('./seed/seedMedia');
-      const Admin = require('./models/Admin');
-      const bcrypt = require('bcryptjs');
+    const Admin = require('./models/Admin');
+    const bcrypt = require('bcryptjs');
 
-      const adminEmail = (process.env.ADMIN_EMAIL || 'admin@unlockmedia.com').toLowerCase().trim();
-      const existingAdmin = await Admin.findOne({ email: adminEmail });
-      if (!existingAdmin) {
-        const defaultPassword = process.env.ADMIN_PASSWORD || 'AdminSecurePass123!';
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(defaultPassword, salt);
-        await Admin.create({
-          email: adminEmail,
-          password: hashedPassword,
-          name: 'Lead Curator',
-          role: 'admin'
-        });
-        console.log(`[Auto-Seed] Created admin account: ${adminEmail}`);
-      }
+    const adminUsername = (process.env.ADMIN_USERNAME || 'rahul123').toLowerCase().trim();
+    const adminEmail = (process.env.ADMIN_EMAIL || 'rahul123@unlockmedia.com').toLowerCase().trim();
+    const defaultPassword = process.env.ADMIN_PASSWORD || 'Abcd@1234';
 
-      for (const item of sampleMedia) {
-        await Media.create(item);
-      }
-      console.log(`[Auto-Seed] Seeded ${sampleMedia.length} initial items successfully!`);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(defaultPassword, salt);
+
+    const existingAdmin = await Admin.findOne({
+      $or: [{ username: adminUsername }, { email: adminEmail }]
+    });
+
+    if (!existingAdmin) {
+      await Admin.create({
+        username: adminUsername,
+        email: adminEmail,
+        password: hashedPassword,
+        name: 'Rahul',
+        role: 'admin'
+      });
+      console.log(`[Admin] Initialized admin account: username="${adminUsername}"`);
+    } else {
+      existingAdmin.username = adminUsername;
+      existingAdmin.password = hashedPassword;
+      existingAdmin.name = 'Rahul';
+      await existingAdmin.save();
+      console.log(`[Admin] Updated admin account: username="${adminUsername}"`);
     }
-  } catch (seedErr) {
-    console.warn('[Auto-Seed Warning]', seedErr.message);
+
+    // Auto-sync images from "add_images_here" folder and launch real-time watcher
+    const { syncImagesFolder, startFolderWatcher } = require('./services/imageSyncService');
+    await syncImagesFolder();
+    startFolderWatcher();
+  } catch (err) {
+    console.warn('[Startup Init Warning]', err.message);
   }
 });
 
@@ -123,6 +129,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/protected-media/:id', mediaController.streamProtectedMedia);
 
 // API Routes
+app.use('/api/user-auth', require('./routes/userAuthRoutes'));
 app.use('/api/media', require('./routes/mediaRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/purchases', require('./routes/purchaseRoutes'));

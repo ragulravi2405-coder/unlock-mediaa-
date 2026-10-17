@@ -2,8 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import UserAuthModal from './components/UserAuthModal';
 import { PurchaseProvider } from './context/PurchaseContext';
 import { ToastProvider } from './context/ToastContext';
+import { UserAuthProvider } from './context/UserAuthContext';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -39,35 +41,38 @@ function NotFoundPage() {
 
 export default function App() {
   return (
-    <PurchaseProvider>
-      <ToastProvider>
-        <Router>
-          <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
-            <Navbar />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/photos" element={<PhotosPage />} />
-                <Route path="/videos" element={<VideosPage />} />
-                <Route path="/media/:id" element={<MediaDetailPage />} />
-                <Route path="/payment/success" element={<PaymentSuccessPage />} />
-                <Route path="/payment/failure" element={<PaymentFailurePage />} />
-                <Route path="/recover" element={<RecoveryPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/refunds" element={<RefundPolicyPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/copyright" element={<CopyrightPage />} />
-                <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </Router>
-      </ToastProvider>
-    </PurchaseProvider>
+    <ToastProvider>
+      <UserAuthProvider>
+        <PurchaseProvider>
+          <Router>
+            <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white">
+              <Navbar />
+              <UserAuthModal />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/photos" element={<PhotosPage />} />
+                  <Route path="/videos" element={<VideosPage />} />
+                  <Route path="/media/:id" element={<MediaDetailPage />} />
+                  <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                  <Route path="/payment/failure" element={<PaymentFailurePage />} />
+                  <Route path="/recover" element={<RecoveryPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/refunds" element={<RefundPolicyPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/copyright" element={<CopyrightPage />} />
+                  <Route path="/admin/login" element={<AdminLoginPage />} />
+                  <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </Router>
+        </PurchaseProvider>
+      </UserAuthProvider>
+    </ToastProvider>
   );
 }

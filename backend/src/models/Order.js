@@ -23,7 +23,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['created', 'attempted', 'paid', 'failed', 'refunded'],
+    enum: ['created', 'attempted', 'pending_verification', 'paid', 'failed', 'rejected', 'refunded'],
     default: 'created',
     index: true
   },

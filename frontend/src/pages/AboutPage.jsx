@@ -15,7 +15,7 @@ export default function AboutPage() {
           High-End Digital Media, Without the Subscription Bloat
         </h1>
         <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Traditional stock photo and video sites force creators into expensive recurring monthly plans. UnlockMedia provides a clean, fair alternative: pay ₹99 for the single master asset you need.
+          Traditional stock photo and video sites force creators into expensive recurring monthly plans. UnlockMedia provides a clean, fair alternative: pay between ₹99 and ₹149 (or take advantage of our special ₹1 trial) for the single master asset you need.
         </p>
       </div>
 
@@ -29,7 +29,7 @@ export default function AboutPage() {
             Frictionless Access
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            No registration forms, no email verifications, and no password management. Visit, preview, pay securely via Razorpay, and immediately unlock.
+            No registration forms, no email verifications, and no password management. Visit, preview, pay securely via Razorpay (@ravirahul601), and immediately unlock.
           </p>
         </div>
 
@@ -50,10 +50,10 @@ export default function AboutPage() {
             <Shield className="w-5 h-5" />
           </div>
           <h3 className="font-display font-bold text-lg text-slate-900">
-            Transparent ₹99 Model
+            Transparent Pricing (₹99 - ₹149)
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Each item costs exactly ₹99 INR. No hidden platform charges, no unexpected subscription renewals, and full consumer transparency.
+            Fair individual asset pricing ranging from ₹99 to ₹149 INR, with special ₹1 trial offers. No hidden platform charges, no unexpected subscription renewals.
           </p>
         </div>
       </div>

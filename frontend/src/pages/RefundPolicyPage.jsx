@@ -28,7 +28,7 @@ export default function RefundPolicyPage() {
             1. Nature of Digital Goods & Deliveries
           </h2>
           <p>
-            At UnlockMedia, our products are non-tangible, irrevocably accessible digital media assets (uncompressed 8K photographs and 4K cinema master video files). Upon successful verification of your payment of ₹99 via Razorpay, instant cryptographic access and streaming capabilities are delivered in real time to your device.
+            At UnlockMedia, our products are non-tangible, irrevocably accessible digital media assets (uncompressed 8K photographs and 4K cinema master video files). Upon successful verification of your payment (₹99 - ₹149, or ₹1 trial) via Razorpay, instant cryptographic access and streaming capabilities are delivered in real time to your device.
           </p>
         </section>
 

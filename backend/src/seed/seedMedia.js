@@ -17,7 +17,7 @@ const sampleMedia = [
     mediaType: 'photo',
     category: 'Landscapes',
     tags: ['mountains', 'sunrise', 'ladakh', 'himalayas', 'nature', '8k'],
-    price: 99,
+    price: 299,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=70&auto=format',
     originalFileKey: 'himalaya_original_master.jpg',
@@ -37,7 +37,7 @@ const sampleMedia = [
     mediaType: 'video',
     category: 'Cinematic',
     tags: ['drone', 'city', 'neon', 'cyberpunk', 'night', '4k'],
-    price: 99,
+    price: 499,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=70&auto=format',
     originalFileKey: 'cyberpunk_city_drone_master.mp4',
@@ -58,7 +58,7 @@ const sampleMedia = [
     mediaType: 'photo',
     category: 'Nature',
     tags: ['waterfall', 'forest', 'rainforest', 'long-exposure', 'green'],
-    price: 99,
+    price: 199,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=800&q=70&auto=format',
     originalFileKey: 'waterfall_master_hires.jpg',
@@ -78,7 +78,7 @@ const sampleMedia = [
     mediaType: 'video',
     category: 'Ocean',
     tags: ['ocean', 'bioluminescence', 'waves', 'night', 'aerial'],
-    price: 99,
+    price: 449,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=70&auto=format',
     originalFileKey: 'ocean_bioluminescence_reel.mp4',
@@ -99,7 +99,7 @@ const sampleMedia = [
     mediaType: 'photo',
     category: 'Architecture',
     tags: ['architecture', 'minimal', 'modern', 'brutalist', 'shadows'],
-    price: 99,
+    price: 149,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=70&auto=format',
     originalFileKey: 'desert_villa_master.jpg',
@@ -119,7 +119,7 @@ const sampleMedia = [
     mediaType: 'video',
     category: 'Cinematic',
     tags: ['aurora', 'northern-lights', 'norway', 'timelapse', 'arctic'],
-    price: 99,
+    price: 399,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&q=70&auto=format',
     originalFileKey: 'aurora_borealis_8k_master.mp4',
@@ -140,7 +140,7 @@ const sampleMedia = [
     mediaType: 'photo',
     category: 'Portraits',
     tags: ['portrait', 'fashion', '35mm', 'vintage', 'studio'],
-    price: 99,
+    price: 249,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=70&auto=format',
     originalFileKey: 'vintage_portrait_master.jpg',
@@ -160,7 +160,7 @@ const sampleMedia = [
     mediaType: 'video',
     category: 'Abstract',
     tags: ['abstract', 'gold', 'fluid', 'macro', 'loop'],
-    price: 99,
+    price: 349,
     currency: 'INR',
     previewUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=70&auto=format',
     originalFileKey: 'golden_fluid_macro_loop.mp4',
@@ -218,7 +218,7 @@ async function seedDatabase() {
       );
     }
 
-    console.log(`[Seed] Successfully seeded ${sampleMedia.length} media items with ₹99 default pricing!`);
+    console.log(`[Seed] Successfully seeded ${sampleMedia.length} media items with ₹149 - ₹499 pricing!`);
     process.exit(0);
   } catch (err) {
     console.error('[Seed Error]', err);
