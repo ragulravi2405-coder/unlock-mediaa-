@@ -141,6 +141,19 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'Requested API endpoint does not exist' });
 });
 
+// Serve frontend production build when dist exists (Single Web Service deployment)
+const fs = require('fs');
+const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('[Unhandled Server Error]', err);
