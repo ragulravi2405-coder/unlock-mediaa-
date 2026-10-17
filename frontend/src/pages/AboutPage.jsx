@@ -15,7 +15,7 @@ export default function AboutPage() {
           High-End Digital Media, Without the Subscription Bloat
         </h1>
         <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-          Traditional stock photo and video sites force creators into expensive recurring monthly plans. UnlockMedia provides a clean, fair alternative: pay between ₹99 and ₹149 (or take advantage of our special ₹1 trial) for the single master asset you need.
+          Traditional stock photo and video sites force creators into expensive recurring monthly plans. UnlockMedia provides a clean, fair alternative: pay between ₹99 and ₹149 for the single master asset you need.
         </p>
       </div>
 
@@ -53,7 +53,7 @@ export default function AboutPage() {
             Transparent Pricing (₹99 - ₹149)
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Fair individual asset pricing ranging from ₹99 to ₹149 INR, with special ₹1 trial offers. No hidden platform charges, no unexpected subscription renewals.
+            Fair individual asset pricing ranging from ₹99 to ₹149 INR. No hidden platform charges, no unexpected subscription renewals.
           </p>
         </div>
       </div>

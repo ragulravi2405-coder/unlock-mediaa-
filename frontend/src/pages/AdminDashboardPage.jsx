@@ -259,7 +259,7 @@ export default function AdminDashboardPage() {
             UnlockMedia Management
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage ₹99 - ₹149 digital assets (and ₹1 trial), review buyer payments, and approve instant unlocks.
+            Manage ₹99 - ₹149 digital assets, review buyer payments, and approve instant unlocks.
           </p>
         </div>
 
@@ -752,7 +752,7 @@ export default function AdminDashboardPage() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                  Price (INR: ₹1 or ₹99 - ₹149) *
+                  Price (INR: ₹99 - ₹149) *
                 </label>
                 <input
                   type="number"
